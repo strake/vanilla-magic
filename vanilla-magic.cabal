@@ -1,0 +1,44 @@
+name:                vanilla-magic
+version:             0.1.0.0
+synopsis:            Initial project template from stack
+description:         Please see README.md
+homepage:            https://github.com/strake/vanilla-magic#readme
+license:             BSD3
+license-file:        LICENSE
+author:              M Farkas-Dyck
+maintainer:          strake888@gmail.com
+copyright:           2016 M Farkas-Dyck
+category:            Web
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     Data.Color, Data.Mana.Cost, Data.Mana.Cost1, Data.PartialOrd, Util
+  build-depends:       base >= 4.7 && < 5, containers, multiset
+  default-language:    Haskell2010
+
+executable vanilla-magic-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , base-unicode-symbols
+                     , vanilla-magic
+                     , containers, multiset, aeson, attoparsec, bytestring, unordered-containers >=0.2.6.0, regex-applicative, regex-applicative-text, text
+  default-language:    Haskell2010
+  default-extensions:  LambdaCase
+
+test-suite vanilla-magic-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , vanilla-magic
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/strake/vanilla-magic
