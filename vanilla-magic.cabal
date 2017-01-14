@@ -15,7 +15,7 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Data.Color, Data.Mana.Cost, Data.Mana.Cost1, Data.PartialOrd, Util
+  exposed-modules:     Data.Color, Data.Mana.Cost, Data.Mana.Cost1, Data.PartialOrd, Util, Util.Applicative
   build-depends:       base >= 4.7 && < 5, containers, multiset
   default-language:    Haskell2010
 

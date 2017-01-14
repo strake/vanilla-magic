@@ -27,3 +27,9 @@ instance (PartialOrd a, PartialOrd b) => PartialOrd (a, b) where
 
 instance (PartialOrd a, PartialOrd b, PartialOrd c) => PartialOrd (a, b, c) where
     partialCompare = partialCompare `on` \ (a, b, c) -> (a, (b, c))
+
+instance (PartialOrd a, PartialOrd b, PartialOrd c, PartialOrd d) => PartialOrd (a, b, c, d) where
+    partialCompare = partialCompare `on` \ (a, b, c, d) -> (a, (b, (c, d)))
+
+newtype Incomparable a = Incomparable a deriving (Eq)
+instance Eq a => PartialOrd (Incomparable a) where (≤) = (==)

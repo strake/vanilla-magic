@@ -1,4 +1,4 @@
-{-# LANGUAGE OverloadedStrings, RecursiveDo, ViewPatterns #-}
+{-# LANGUAGE OverloadedStrings, RecursiveDo, ViewPatterns, PartialTypeSignatures #-}
 
 module Main where
 
@@ -40,6 +40,7 @@ import qualified Text.Regex.Applicative as RE
 import qualified Text.Regex.Applicative.Text as RE.Text (match)
 import qualified Text.Regex.Applicative.Common as RE
 import Util
+import Util.Applicative
 
 main = do
     sets <- maybeResult . parse json' <$> BS.getContents >>= \ case
@@ -55,15 +56,22 @@ main = do
     mapM_ print . List.sortBy (compare `on` \ (setName, _) ->
                                    ((HM.lookup setName >=> HM.lookup "releaseDate") >>> \ case Just (String t) -> t
                                                                                                _ -> "") sets) . HM.toList $
-        List.sortBy (compare `on` \ (Mana.Cost c, _, _) -> liftA2 (,) MSet.size id c) .
-        fmap (\ (a, Down b, Down c) -> (a, b, c)) . findMins . List.mapMaybe frenchVanillaCreatureStats <$> setCards
+        List.sortBy (compare `on` \ (_, _, Mana.Cost c, _, _) -> liftA2 (,) MSet.size id c) .
+        fmap (\ (Incomparable (a, b), c, Down d, Down e) -> (a, b, c, d, e)) .
+        findMins . List.mapMaybe frenchVanillaCreatureStats <$> setCards
 
-frenchVanillaCreatureStats :: Object -> Maybe (Mana.Cost, Down PT, Down FrenchVanillaFlavor)
+frenchVanillaCreatureStats :: Object -> Maybe (Incomparable (Bool, _ Text),
+                                               Mana.Cost, Down PT, Down FrenchVanillaFlavor)
 frenchVanillaCreatureStats o
   | isCreature o,
     String text <- fromMaybe (String "") $ HM.lookup "text" o,
     Just flavor <- frenchVanillaFlavor text =
-      (liftA3 . liftA3) (\ p t c -> (c, Down (PT p t), Down flavor))
+      (liftA5 . liftA5) (\ l τs p t c ->
+                         (Incomparable (l, τs), c, Down (PT p t), Down flavor))
+      (Just . isLegendary)
+      (HM.lookup "types" >=> \ case Array ts -> traverse (\ case String s -> Just s
+                                                                 _ -> Nothing) ts
+                                    _ -> Nothing)
       (readMaybe <=< (\ case String t -> Just (Text.unpack t)
                              _ -> Nothing) <=< HM.lookup "power")
       (readMaybe <=< (\ case String t -> Just (Text.unpack t)
@@ -75,8 +83,13 @@ frenchVanillaCreatureStats o
 isCreature :: Object -> Bool
 isCreature o
   | Just (Array ts) <- HM.lookup "types" o,
-    all (∈ ["Artifact", "Creature"]) ts,
     any (== "Creature") ts = True
+  | otherwise = False
+
+isLegendary :: Object -> Bool
+isLegendary o
+  | Just (Array ts) <- HM.lookup "supertypes" o,
+    any (== "Legendary") ts = True
   | otherwise = False
 
 frenchVanillaFlavor :: Text -> Maybe FrenchVanillaFlavor
